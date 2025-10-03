@@ -1,0 +1,515 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Accueil - ChinaTradeMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 0;
+        margin-bottom: 50px;
+    }
+    
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 25px;
+        height: 100%;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .product-img-container {
+        height: 200px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+    }
+    
+    .product-img {
+        max-height: 100%;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+    }
+    
+    .price {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-left: 8px;
+    }
+    
+    .discount-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1;
+    }
+    
+    .category-card {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .category-img {
+        height: 150px;
+        object-fit: cover;
+    }
+    
+    .feature-box {
+        padding: 30px 20px;
+        text-align: center;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-box:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">Bienvenue sur ChinaTradeMaster</h1>
+                <p class="lead mb-4">Découvrez notre sélection de produits chinois de qualité à des prix imbattables.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'store:products' %}" class="btn btn-warning btn-lg px-4">
+                        <i class="bi bi-shop me-2"></i>Boutique
+                    </a>
+                    <a href="#featured-products" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-arrow-down-circle me-2"></i>Découvrir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Catégories populaires -->
+<section class="mb-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Catégories populaires</h2>
+            <a href="{% url 'store:categories' %}" class="btn btn-outline-primary btn-sm">Voir toutes les catégories</a>
+        </div>
+        
+        <div class="row" id="categoriesGrid">
+            {% for category in categories|slice:":6" %}
+            <div class="col-md-4 col-lg-2 mb-4">
+                <a href="{% url 'store:category_detail' category.slug %}" class="text-decoration-none">
+                    <div class="card category-card h-100">
+                        {% if category.image %}
+                        <img src="{{ category.image.url }}" class="card-img-top category-img" alt="{{ category.name }}">
+                        {% else %}
+                        <div class="category-img bg-light d-flex align-items-center justify-content-center">
+                            <i class="bi bi-tag fs-1 text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-0">{{ category.name }}</h5>
+                            <small class="text-muted">{{ category.product_count }} produits</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <div class="alert alert-info">Aucune catégorie disponible pour le moment.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Produits en vedette -->
+<section id="featured-products" class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Nouveautés</h2>
+            <a href="{% url 'store:products' %}" class="btn btn-outline-primary btn-sm">Voir tous les produits</a>
+        </div>
+        
+        <div class="row" id="productsGrid">
+            {% for product in featured_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card product-card h-100">
+                    {% if product.images.first %}
+                    <div class="position-relative">
+                        <a href="{% url 'store:product_detail' product.slug %}">
+                            <div class="product-img-container">
+                                <img src="{{ product.images.first.image.url }}" class="product-img" alt="{{ product.name }}">
+                            </div>
+                        </a>
+                        {% if product.discount_percentage > 0 %}
+                        <span class="badge bg-danger discount-badge">-{{ product.discount_percentage }}%</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'store:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name|truncatechars:50 }}
+                            </a>
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                <span class="price">{{ product.sale_price|floatformat:0 }} FCFA</span>
+                                {% if product.discount_percentage > 0 %}
+                                <span class="original-price">{{ product.price|floatformat:0 }} FCFA</span>
+                                {% endif %}
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary add-to-cart" data-product-id="{{ product.id }}">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">Aucun produit en vedette pour le moment.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Pourquoi nous choisir -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Pourquoi choisir ChinaTradeMaster ?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <h4>Livraison rapide</h4>
+                    <p class="mb-0">Expédition express partout en Côte d'Ivoire avec suivi en temps réel de votre commande.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4>Paiement sécurisé</h4>
+                    <p class="mb-0">Paiement 100% sécurisé avec cryptage SSL et protection des données.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h4>Support client</h4>
+                    <p class="mb-0">Notre équipe est disponible 7j/7 pour répondre à toutes vos questions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Produits en promotion -->
+{% if discounted_products %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Promotions en cours</h2>
+            <a href="{% url 'store:products' %}?on_sale=1" class="btn btn-outline-primary btn-sm">Voir toutes les promotions</a>
+        </div>
+        
+        <div class="row">
+            {% for product in discounted_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card product-card h-100">
+                    {% if product.images.first %}
+                    <div class="position-relative">
+                        <a href="{% url 'store:product_detail' product.slug %}">
+                            <div class="product-img-container">
+                                <img src="{{ product.images.first.image.url }}" class="product-img" alt="{{ product.name }}">
+                            </div>
+                        </a>
+                        <span class="badge bg-danger discount-badge">-{{ product.discount_percentage }}%</span>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'store:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name|truncatechars:50 }}
+                            </a>
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                <span class="price">{{ product.sale_price|floatformat:0 }} FCFA</span>
+                                <span class="original-price">{{ product.price|floatformat:0 }} FCFA</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary add-to-cart" data-product-id="{{ product.id }}">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Témoignages -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Ce que disent nos clients</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person fs-4"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Jean K.</h5>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text">"Livraison rapide et produits de qualité. Je recommande vivement ce site pour vos achats en provenance de Chine."</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person fs-4"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Aïcha T.</h5>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text">"Service client réactif et produits conformes aux descriptions. J'ai été agréablement surprise par la qualité."</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person fs-4"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Mohamed D.</h5>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-half"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text">"Commande reçue dans les délais. Les produits sont de bonne qualité et les prix sont très compétitifs."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h3 class="fw-bold mb-3">Restez informé de nos offres spéciales</h3>
+                <p class="mb-4">Inscrivez-vous à notre newsletter pour recevoir des offres exclusives et des réductions.</p>
+                <form class="row g-2 justify-content-center" id="newsletterForm">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-0">
+                                <i class="bi bi-envelope text-primary"></i>
+                            </span>
+                            <input type="email" class="form-control border-0" placeholder="Votre adresse email" required>
+                            <button class="btn btn-warning" type="submit">S'inscrire</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion de l'ajout au panier
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.getAttribute('data-product-id');
+                addToCart(productId);
+            });
+        });
+
+        // Fonction pour ajouter un produit au panier
+        async function addToCart(productId, quantity = 1) {
+            try {
+                const response = await fetch('/api/cart/add/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        quantity: quantity
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Mettre à jour le compteur du panier
+                    updateCartCount(data.cart_item_count);
+                    
+                    // Afficher une notification
+                    showToast('Succès', 'Le produit a été ajouté à votre panier', 'success');
+                } else {
+                    showToast('Erreur', data.message || 'Une erreur est survenue', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showToast('Erreur', 'Une erreur est survenue lors de l\'ajout au panier', 'error');
+            }
+        }
+
+        // Fonction pour mettre à jour le compteur du panier
+        function updateCartCount(count) {
+            const cartCountElements = document.querySelectorAll('.cart-count');
+            cartCountElements.forEach(el => {
+                el.textContent = count;
+                el.style.display = count > 0 ? 'inline' : 'none';
+            });
+        }
+
+        // Fonction pour afficher les notifications toast
+        function showToast(title, message, type = 'info') {
+            const toast = new bootstrap.Toast(document.getElementById('notificationToast'));
+            const toastTitle = document.getElementById('toastTitle');
+            const toastBody = document.getElementById('toastBody');
+            
+            // Définir le style en fonction du type
+            const toastElement = document.getElementById('notificationToast');
+            toastElement.classList.remove('bg-success', 'bg-danger', 'bg-info');
+            
+            if (type === 'success') {
+                toastElement.classList.add('bg-success', 'text-white');
+            } else if (type === 'error') {
+                toastElement.classList.add('bg-danger', 'text-white');
+            } else {
+                toastElement.classList.add('bg-info', 'text-dark');
+            }
+            
+            toastTitle.textContent = title;
+            toastBody.textContent = message;
+            toast.show();
+        }
+
+        // Gestion de la soumission du formulaire de newsletter
+        const newsletterForm = document.getElementById('newsletterForm');
+        if (newsletterForm) {
+            newsletterForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input[type="email"]').value;
+                
+                try {
+                    const response = await fetch('/api/newsletter/subscribe/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        showToast('Succès', 'Merci pour votre inscription à notre newsletter !', 'success');
+                        this.reset();
+                    } else {
+                        showToast('Erreur', data.message || 'Une erreur est survenue', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    showToast('Erreur', 'Une erreur est survenue lors de l\'inscription', 'error');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+            console.log('Application ChinaTradeMaster non initialisée');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} - ChinaTradeMaster</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+    <meta name="description" content="{{ product.description|truncatewords:20 }}">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-shop me-2"></i>ChinaTradeMaster
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart/">
+                            <i class="bi bi-cart3"></i>
+                            <span class="badge bg-warning text-dark" id="cartCount">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="loginBtn">
+                            <i class="bi bi-person"></i> Connexion
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container mt-5 pt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="/?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ product.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- Images du produit -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <img src="{{ product.image_url|default:'/static/images/china-removebg-preview.png' }}" 
+                             class="img-fluid rounded" 
+                             alt="{{ product.title }}"
+                             id="productImage">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations du produit -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-2">
+                                <li class="breadcrumb-item">
+                                    <span class="badge bg-primary">{{ product.category.name }}</span>
+                                </li>
+                            </ol>
+                        </nav>
+                        
+                        <h1 class="h2 mb-3">{{ product.title }}</h1>
+                        
+                        <div class="mb-3">
+                            <span class="h3 text-primary fw-bold">{{ product.price }} €</span>
+                            {% if product.is_in_stock %}
+                                <span class="badge bg-success ms-2">En stock</span>
+                            {% else %}
+                                <span class="badge bg-danger ms-2">Rupture</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-muted">{{ product.description }}</p>
+                        </div>
+
+                        {% if product.is_in_stock %}
+                            <div class="mb-4">
+                                <label for="quantity" class="form-label">Quantité:</label>
+                                <div class="input-group" style="max-width: 200px;">
+                                    <button class="btn btn-outline-secondary" type="button" id="decreaseQuantity">-</button>
+                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ product.stock }}">
+                                    <button class="btn btn-outline-secondary" type="button" id="increaseQuantity">+</button>
+                                </div>
+                                <small class="text-muted">Stock disponible: {{ product.stock }} unités</small>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg" id="addToCartBtn">
+                                    <i class="bi bi-cart-plus me-2"></i>Ajouter au panier
+                                </button>
+                                <button class="btn btn-outline-primary" id="buyNowBtn">
+                                    <i class="bi bi-lightning me-2"></i>Acheter maintenant
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Ce produit n'est actuellement pas en stock.
+                            </div>
+                        {% endif %}
+
+                        <!-- Informations supplémentaires -->
+                        <div class="mt-4">
+                            <hr>
+                            <div class="row">
+                                <div class="col-6">
+                                    <h6 class="fw-bold">Catégorie</h6>
+                                    <p class="text-muted mb-0">{{ product.category.name }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="fw-bold">Référence</h6>
+                                    <p class="text-muted mb-0">{{ product.slug }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produits similaires -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="text-primary mb-4">
+                    <i class="bi bi-star me-2"></i>Produits similaires
+                </h3>
+                <div class="row" id="similarProducts">
+                    <!-- Les produits similaires seront chargés ici -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sidebar gauche du panier (style Amazon) -->
+    <div class="cart-sidebar-overlay" id="cartSidebarOverlay" style="display: none;">
+        <div class="cart-sidebar" id="cartSidebar">
+            <div class="cart-sidebar-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-cart-check me-2"></i>Produit ajouté au panier
+                </h5>
+                <button type="button" class="btn-close" id="closeCartSidebar"></button>
+            </div>
+            <div class="cart-sidebar-body" id="cartSidebarBody">
+                <!-- Le contenu sera chargé via JavaScript -->
+            </div>
+            <div class="cart-sidebar-footer" id="cartSidebarFooter">
+                <div class="d-grid gap-2">
+                    <a href="/cart/" class="btn btn-primary">
+                        <i class="bi bi-cart3 me-1"></i>Voir le panier
+                    </a>
+                    <button class="btn btn-outline-primary" id="continueShopping">
+                        <i class="bi bi-arrow-left me-1"></i>Continuer les achats
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast pour les notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+                <!-- Le message sera affiché ici -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/product_detail.js' %}"></script>
+</body>
+
+</html> 

@@ -1,0 +1,11 @@
+chinaTradeMaster-Ecomerce/
+├── chinatrademaster/          # Configuration Django
+├── store/                     # Application e-commerce
+├── templates/                 # Templates HTML
+│   └── index.html            # Page principale unique
+├── static/                    # Fichiers statiques
+│   ├── css/main.css          # Styles personnalisés
+│   └── js/main.js            # JavaScript principal
+├── requirements.txt           # Dépendances
+├── load_sample_data.py       # Script données d'exemple
+└── README.md                 # Documentation complète

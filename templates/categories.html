@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Toutes les catégories - ChinaTradeMaster{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'store:index' %}">Accueil</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Catégories</li>
+                </ol>
+            </nav>
+            <h1 class="mb-4">Toutes les catégories</h1>
+            <p class="lead">Parcourez nos différentes catégories de produits.</p>
+        </div>
+    </div>
+    
+    <div class="row" id="categoriesGrid">
+        <!-- Les catégories seront chargées ici via JavaScript -->
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement des catégories...</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.chinaTradeMasterApp) {
+            // Charger toutes les catégories pour la page des catégories
+            window.chinaTradeMasterApp.loadCategoriesForCategoriesPage();
+        }
+    });
+</script>
+{% endblock %}

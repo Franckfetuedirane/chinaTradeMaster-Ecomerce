@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ title }} - ChinaTradeMaster{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Category Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'store:index' %}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'store:categories' %}">Catégories</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold">{{ category.name }}</h1>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Trier par
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item" href="?sort=name">Nom (A-Z)</a></li>
+                        <li><a class="dropdown-item" href="?sort=-name">Nom (Z-A)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="?sort=price">Prix croissant</a></li>
+                        <li><a class="dropdown-item" href="?sort=-price">Prix décroissant</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="?sort=-created_at">Nouveautés</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            {% if category.description %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <p class="lead mb-0">{{ category.description }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card h-100 product-card">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" class="card-img-top product-img" alt="{{ product.name }}">
+                {% else %}
+                <div class="product-img bg-light d-flex align-items-center justify-content-center">
+                    <i class="bi bi-image fs-1 text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">
+                        <a href="{% url 'store:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                            {{ product.name|truncatechars:30 }}
+                        </a>
+                    </h5>
+                    <p class="card-text text-muted small mb-2">
+                        {{ product.description|truncatewords:15 }}
+                    </p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="h5 mb-0 text-primary">{{ product.price|floatformat:2 }} €</span>
+                            {% if product.stock_quantity > 0 %}
+                                <span class="badge bg-success">En stock</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Rupture</span>
+                            {% endif %}
+                        </div>
+                        <button class="btn btn-primary w-100 add-to-cart" data-product-id="{{ product.id }}" {% if product.stock_quantity == 0 %}disabled{% endif %}>
+                            <i class="bi bi-cart-plus me-1"></i> Ajouter au panier
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                Aucun produit trouvé dans cette catégorie pour le moment.
+            </div>
+            <a href="{% url 'store:products' %}" class="btn btn-primary mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Voir tous les produits
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if products.has_other_pages %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ products.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for i in products.paginator.page_range %}
+                        {% if products.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ products.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script pour gérer l'ajout au panier
+$(document).ready(function() {
+    $('.add-to-cart').click(function() {
+        const productId = $(this).data('product-id');
+        const button = $(this);
+        
+        // Désactiver le bouton pendant la requête
+        button.prop('disabled', true);
+        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Ajout...');
+        
+        // Envoyer la requête AJAX
+        $.ajax({
+            url: '{% url "store:api_cart_add" %}',
+            method: 'POST',
+            data: {
+                'product_id': productId,
+                'quantity': 1,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                // Mettre à jour le compteur du panier
+                $('#cart-count').text(response.cart_item_count);
+                
+                // Afficher un message de succès
+                showAlert('Produit ajouté au panier avec succès!', 'success');
+                
+                // Réactiver le bouton
+                button.html('<i class="bi bi-cart-plus me-1"></i> Ajouté!');
+                setTimeout(function() {
+                    button.html('<i class="bi bi-cart-plus me-1"></i> Ajouter au panier');
+                    button.prop('disabled', false);
+                }, 1500);
+            },
+            error: function(xhr) {
+                // Afficher un message d'erreur
+                showAlert('Une erreur s\'est produite lors de l\'ajout au panier.', 'danger');
+                
+                // Réactiver le bouton
+                button.html('<i class="bi bi-cart-plus me-1"></i> Réessayer');
+                button.prop('disabled', false);
+            }
+        });
+    });
+    
+    // Fonction pour afficher les alertes
+    function showAlert(message, type) {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Afficher l'alerte en haut de la page
+        $('main').prepend(alertHtml);
+        
+        // Supprimer l'alerte après 5 secondes
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

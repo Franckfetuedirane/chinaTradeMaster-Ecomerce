@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - ChinaTradeMaster{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="display-4 mb-4">{{ title }}</h1>
+            <p class="lead">{{ description }}</p>
+            
+            <div class="card shadow-sm my-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Notre Mission</h2>
+                    <p>Notre mission est de fournir des produits de qualité à des prix compétitifs, en provenance directe des meilleurs fournisseurs chinois. Nous nous engageons à offrir une expérience d'achat exceptionnelle à nos clients.</p>
+                    
+                    <h2 class="h4 mt-4 mb-3">Notre Équipe</h2>
+                    <p>Notre équipe est composée d'experts en commerce international et en logistique, dédiés à vous offrir le meilleur service possible. Nous sélectionnons avec soin chaque produit pour répondre aux normes de qualité les plus élevées.</p>
+                    
+                    <h2 class="h4 mt-4 mb-3">Notre Engagement</h2>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Produits de qualité supérieure</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Service client réactif</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Livraison rapide et sécurisée</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Meilleur rapport qualité-prix</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

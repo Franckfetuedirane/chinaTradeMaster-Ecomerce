@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - ChinaTradeMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-info {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem;
+        height: 100%;
+    }
+    .contact-form {
+        background-color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .contact-icon {
+        font-size: 2rem;
+        color: #0d6efd;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4">{{ title }}</h1>
+            <p class="lead">{{ description }}</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Contact Information -->
+        <div class="col-lg-4">
+            <div class="contact-info">
+                <h3 class="h4 mb-4">Nos Coordonnées</h3>
+                
+                <div class="mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-geo-alt-fill contact-icon me-3"></i>
+                        <div>
+                            <h4 class="h6 fw-bold mb-1">Adresse</h4>
+                            <p class="mb-0">123 Rue du Commerce<br>75001 Paris, France</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-telephone-fill contact-icon me-3"></i>
+                        <div>
+                            <h4 class="h6 fw-bold mb-1">Téléphone</h4>
+                            <p class="mb-0">+33 1 23 45 67 89<br>Lun - Ven, 9h - 18h</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-envelope-fill contact-icon me-3"></i>
+                        <div>
+                            <h4 class="h6 fw-bold mb-1">Email</h4>
+                            <p class="mb-0">contact@chinatrademaster.com<br>Réponse sous 24h</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <h4 class="h6 fw-bold mb-3">Suivez-nous</h4>
+                    <div class="d-flex">
+                        <a href="#" class="btn btn-outline-primary rounded-circle me-2"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="btn btn-outline-info rounded-circle me-2"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="btn btn-outline-danger rounded-circle me-2"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="btn btn-outline-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div class="col-lg-8">
+            <div class="contact-form">
+                <h3 class="h4 mb-4">Envoyez-nous un message</h3>
+                <form id="contactForm" method="post" action="#">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="name" placeholder="Votre nom" required>
+                                <label for="name">Votre nom</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" placeholder="Votre email" required>
+                                <label for="email">Votre email</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="subject" placeholder="Sujet" required>
+                                <label for="subject">Sujet</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                <textarea class="form-control" id="message" style="height: 150px" placeholder="Votre message" required></textarea>
+                                <label for="message">Votre message</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="privacy" required>
+                                <label class="form-check-label" for="privacy">
+                                    J'accepte la politique de confidentialité
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-send me-2"></i>Envoyer le message
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.9916256937595!2d2.29229261580728!3d48.8583700792875!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66e2964e34e2d%3A0x8ddca9ee380ef7e0!2sTour%20Eiffel!5e0!3m2!1sfr!2sfr!4v1620000000000!5m2!1sfr!2sfr" 
+                        style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Ici, vous pouvez ajouter le code pour envoyer le formulaire via AJAX
+        alert('Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.');
+        this.reset();
+    });
+</script>
+{% endblock %}
