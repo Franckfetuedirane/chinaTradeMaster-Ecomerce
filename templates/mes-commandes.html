@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Commandes - ChinaTradeMaster{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Mes Commandes</h1>
+            <p class="lead">Consultez l'historique de vos commandes ici.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Historique des commandes</h5>
+                    <div id="orders-container">
+                        <!-- Les commandes seront chargées ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ordersContainer = document.getElementById('orders-container');
+    const ctm = window.chinaTradeMaster;
+
+    async function loadOrders() {
+        if (ctm) {
+            ordersContainer.innerHTML = '<p>Chargement de vos commandes...</p>';
+            try {
+                const response = await fetch('/api/user/orders/', {
+                    headers: {
+                        'X-CSRFToken': ctm.getCookie('csrftoken'),
+                    },
+                });
+                const data = await response.json();
+
+                if (response.ok && data.orders.length > 0) {
+                    let ordersHtml = '<div class="table-responsive"><table class="table table-striped">';
+                    ordersHtml += '<thead><tr><th>Numéro</th><th>Date</th><th>Total</th><th>Statut</th><th>Articles</th></tr></thead><tbody>';
+                    data.orders.forEach(order => {
+                        ordersHtml += `<tr>
+                                        <td>${order.order_number}</td>
+                                        <td>${order.created_at}</td>
+                                        <td>${ctm.formatPrice(order.total)} FCFA</td>
+                                        <td><span class="badge bg-info">${order.status}</span></td>
+                                        <td>${order.items_count}</td>
+                                     </tr>`;
+                    });
+                    ordersHtml += '</tbody></table></div>';
+                    ordersContainer.innerHTML = ordersHtml;
+                } else {
+                    ordersContainer.innerHTML = '<div class="alert alert-info">Aucune commande n\'a été trouvée.</div>';
+                }
+            } catch (error) {
+                ordersContainer.innerHTML = '<div class="alert alert-danger">Une erreur est survenue lors du chargement de vos commandes.</div>';
+                console.error('Error loading orders:', error);
+            }
+        }
+    }
+
+    if (ctm) {
+        loadOrders();
+    } else {
+        console.error("ChinaTradeMaster app not initialized.");
+    }
+});
+</script>
+{% endblock %}

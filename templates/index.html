@@ -165,46 +165,14 @@
         </div>
         
         <div class="row" id="productsGrid">
-            {% for product in featured_products %}
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="card product-card h-100">
-                    {% if product.images.first %}
-                    <div class="position-relative">
-                        <a href="{% url 'store:product_detail' product.slug %}">
-                            <div class="product-img-container">
-                                <img src="{{ product.images.first.image.url }}" class="product-img" alt="{{ product.name }}">
-                            </div>
-                        </a>
-                        {% if product.discount_percentage > 0 %}
-                        <span class="badge bg-danger discount-badge">-{{ product.discount_percentage }}%</span>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <a href="{% url 'store:product_detail' product.slug %}" class="text-decoration-none text-dark">
-                                {{ product.name|truncatechars:50 }}
-                            </a>
-                        </h5>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div>
-                                <span class="price">{{ product.sale_price|floatformat:0 }} FCFA</span>
-                                {% if product.discount_percentage > 0 %}
-                                <span class="original-price">{{ product.price|floatformat:0 }} FCFA</span>
-                                {% endif %}
-                            </div>
-                            <button class="btn btn-sm btn-outline-primary add-to-cart" data-product-id="{{ product.id }}">
-                                <i class="bi bi-cart-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <!-- Les produits seront chargés ici par JavaScript -->
+        </div>
+        <div class="row mt-4">
+            <div class="col-12 d-flex justify-content-center">
+                <ul class="pagination" id="pagination">
+                    <!-- La pagination sera chargée ici par JavaScript -->
+                </ul>
             </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info text-center">Aucun produit en vedette pour le moment.</div>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </section>
@@ -396,120 +364,3 @@
     </div>
 </section>
 {% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Gestion de l'ajout au panier
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const productId = this.getAttribute('data-product-id');
-                addToCart(productId);
-            });
-        });
-
-        // Fonction pour ajouter un produit au panier
-        async function addToCart(productId, quantity = 1) {
-            try {
-                const response = await fetch('/api/cart/add/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        quantity: quantity
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (response.ok) {
-                    // Mettre à jour le compteur du panier
-                    updateCartCount(data.cart_item_count);
-                    
-                    // Afficher une notification
-                    showToast('Succès', 'Le produit a été ajouté à votre panier', 'success');
-                } else {
-                    showToast('Erreur', data.message || 'Une erreur est survenue', 'error');
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                showToast('Erreur', 'Une erreur est survenue lors de l\'ajout au panier', 'error');
-            }
-        }
-
-        // Fonction pour mettre à jour le compteur du panier
-        function updateCartCount(count) {
-            const cartCountElements = document.querySelectorAll('.cart-count');
-            cartCountElements.forEach(el => {
-                el.textContent = count;
-                el.style.display = count > 0 ? 'inline' : 'none';
-            });
-        }
-
-        // Fonction pour afficher les notifications toast
-        function showToast(title, message, type = 'info') {
-            const toast = new bootstrap.Toast(document.getElementById('notificationToast'));
-            const toastTitle = document.getElementById('toastTitle');
-            const toastBody = document.getElementById('toastBody');
-            
-            // Définir le style en fonction du type
-            const toastElement = document.getElementById('notificationToast');
-            toastElement.classList.remove('bg-success', 'bg-danger', 'bg-info');
-            
-            if (type === 'success') {
-                toastElement.classList.add('bg-success', 'text-white');
-            } else if (type === 'error') {
-                toastElement.classList.add('bg-danger', 'text-white');
-            } else {
-                toastElement.classList.add('bg-info', 'text-dark');
-            }
-            
-            toastTitle.textContent = title;
-            toastBody.textContent = message;
-            toast.show();
-        }
-
-        // Gestion de la soumission du formulaire de newsletter
-        const newsletterForm = document.getElementById('newsletterForm');
-        if (newsletterForm) {
-            newsletterForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const email = this.querySelector('input[type="email"]').value;
-                
-                try {
-                    const response = await fetch('/api/newsletter/subscribe/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({ email: email })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        showToast('Succès', 'Merci pour votre inscription à notre newsletter !', 'success');
-                        this.reset();
-                    } else {
-                        showToast('Erreur', data.message || 'Une erreur est survenue', 'error');
-                    }
-                } catch (error) {
-                    console.error('Erreur:', error);
-                    showToast('Erreur', 'Une erreur est survenue lors de l\'inscription', 'error');
-                }
-            });
-        }
-    });
-</script>
-{% endblock %}
-            console.log('Application ChinaTradeMaster non initialisée');
-        }
-    </script>
-</body>
-
-</html>

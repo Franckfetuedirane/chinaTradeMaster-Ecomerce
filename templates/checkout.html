@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Paiement - ChinaTradeMaster{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Paiement</h1>
+            <p class="lead">Veuillez remplir vos informations pour finaliser la commande.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Shipping Details Form -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Informations de livraison</h5>
+                    <form id="checkoutForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">Prénom</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Nom</label>
+                                <input type="text" class="form-control" id="lastName" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Adresse</label>
+                            <textarea class="form-control" id="address" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Téléphone (Optionnel)</label>
+                            <input type="tel" class="form-control" id="phone">
+                        </div>
+                        <hr>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Simuler le paiement</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Résumé de votre commande</h5>
+                    <div id="order-summary">
+                        <!-- Le résumé sera chargé ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ctm = window.chinaTradeMaster;
+    const orderSummaryContainer = document.getElementById('order-summary');
+    const checkoutForm = document.getElementById('checkoutForm');
+
+    async function loadOrderSummary() {
+        if (ctm) {
+            const response = await fetch('/api/cart/');
+            const data = await response.json();
+
+            if (data.items.length > 0) {
+                let itemsHtml = '<ul class="list-group list-group-flush">';
+                let total = 0;
+                data.items.forEach(item => {
+                    const itemTotal = item.quantity * item.price_snapshot;
+                    total += itemTotal;
+                    itemsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${item.product.name} (x${item.quantity})
+                                    <span>${ctm.formatPrice(itemTotal)} FCFA</span>
+                                 </li>`;
+                });
+                itemsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
+                                Total
+                                <span>${ctm.formatPrice(total)} FCFA</span>
+                             </li>`;
+                itemsHtml += '</ul>';
+                orderSummaryContainer.innerHTML = itemsHtml;
+            } else {
+                orderSummaryContainer.innerHTML = '<div class="alert alert-warning">Votre panier est vide.</div>';
+                checkoutForm.querySelector('button[type="submit"]').disabled = true;
+            }
+        }
+    }
+
+    checkoutForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const orderData = {
+            first_name: document.getElementById('firstName').value,
+            last_name: document.getElementById('lastName').value,
+            email: document.getElementById('email').value,
+            address: document.getElementById('address').value,
+            phone: document.getElementById('phone').value,
+        };
+
+        try {
+            const response = await fetch('/api/checkout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': ctm.getCookie('csrftoken'),
+                },
+                body: JSON.stringify(orderData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                ctm.showToast('Succès', 'Votre commande a été passée avec succès!', 'success');
+                ctm.loadCartCount();
+                setTimeout(() => {
+                    window.location.href = "{% url 'store:mes_commandes' %}";
+                }, 2000);
+            } else {
+                throw new Error(result.error || 'Une erreur est survenue.');
+            }
+        } catch (error) {
+            ctm.showToast('Erreur', error.message, 'error');
+        }
+    });
+
+    if (ctm) {
+        loadOrderSummary();
+    } else {
+        console.error("ChinaTradeMaster app not initialized.");
+    }
+});
+</script>
+{% endblock %}

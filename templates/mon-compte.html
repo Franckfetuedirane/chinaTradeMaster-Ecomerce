@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Compte - ChinaTradeMaster{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Mon Compte</h1>
+            <p class="lead">Gérez les informations de votre compte ici.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Informations du compte</h5>
+                    <p><strong>Nom d'utilisateur:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p>Cette page est en cours de construction. Bientôt, vous pourrez mettre à jour vos informations personnelles et voir l'historique de vos commandes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

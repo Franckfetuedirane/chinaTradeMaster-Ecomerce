@@ -85,24 +85,27 @@ def api_products(request):
     for product in products_page:
         products_data.append({
             'id': product.id,
-            'title': product.title,
+            'name': product.title,  # Corrected from 'title' to 'name'
             'slug': product.slug,
             'description': product.description[:200] + '...' if len(product.description) > 200 else product.description,
             'price': float(product.price),
             'stock': product.stock,
-            'image_url': product.image_url,
+            'images': [{'image': product.image_url}] if product.image_url else [], # Corrected to 'images' array
             'category': {
                 'name': product.category.name,
                 'slug': product.category.slug
             },
-            'is_in_stock': product.is_in_stock
+            'is_in_stock': product.is_in_stock,
+            'average_rating': 0, # Placeholder
+            'discount_percentage': 0 # Placeholder
         })
     
     return JsonResponse({
-        'products': products_data,
+        'count': paginator.count,
+        'results': products_data,
         'pagination': {
             'current_page': products_page.number,
-            'total_pages': products_page.paginator.num_pages,
+            'total_pages': paginator.num_pages,
             'has_next': products_page.has_next(),
             'has_previous': products_page.has_previous(),
         }
@@ -189,33 +192,50 @@ def api_cart_add(request):
         return JsonResponse({'error': 'Données invalides'}, status=400)
 
 @csrf_exempt
-@require_http_methods(["POST"])
-def api_cart_remove(request):
+@require_http_methods(["PATCH"])
+def api_cart_update(request, item_id):
     """
-    API pour supprimer un produit du panier
+    API pour mettre à jour la quantité d'un article dans le panier
     """
     try:
         data = json.loads(request.body)
-        cart_item_id = data.get('cart_item_id')
+        quantity = int(data.get('quantity'))
+
+        if quantity <= 0:
+            return JsonResponse({'error': 'Quantité invalide'}, status=400)
+
+        cart_item = get_object_or_404(CartItem, id=item_id)
         
-        session_id = request.session.session_key
-        user = request.user if request.user.is_authenticated else None
-        
-        cart_item = get_object_or_404(CartItem, id=cart_item_id)
-        
-        # Vérifier que l'élément appartient à la session/utilisateur
-        if cart_item.session_id != session_id and cart_item.user != user:
+        # Basic ownership check
+        if cart_item.session_id != request.session.session_key and cart_item.user != request.user:
             return JsonResponse({'error': 'Accès refusé'}, status=403)
-        
-        cart_item.delete()
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Produit supprimé du panier'
-        })
-        
+
+        if cart_item.product.stock < quantity:
+            return JsonResponse({'error': 'Stock insuffisant'}, status=400)
+
+        cart_item.quantity = quantity
+        cart_item.save()
+
+        return JsonResponse({'success': True, 'message': 'Panier mis à jour'})
+
     except (json.JSONDecodeError, ValueError, KeyError):
         return JsonResponse({'error': 'Données invalides'}, status=400)
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def api_cart_remove_item(request, item_id):
+    """
+    API pour supprimer un article du panier
+    """
+    cart_item = get_object_or_404(CartItem, id=item_id)
+
+    # Basic ownership check
+    if cart_item.session_id != request.session.session_key and cart_item.user != request.user:
+        return JsonResponse({'error': 'Accès refusé'}, status=403)
+
+    cart_item.delete()
+
+    return JsonResponse({'success': True, 'message': 'Article supprimé'})
 
 @require_http_methods(["GET"])
 def api_cart(request):
@@ -242,12 +262,14 @@ def api_cart(request):
             'id': item.id,
             'product': {
                 'id': item.product.id,
-                'title': item.product.title,
+                'name': item.product.title, # Corrected from 'title' to 'name'
                 'slug': item.product.slug,
-                'image_url': item.product.image_url
+                'thumbnail': item.product.image_url, # Corrected from 'image_url' to 'thumbnail'
+                'price': float(item.product.price),
+                'stock': item.product.stock,
             },
             'quantity': item.quantity,
-            'price': float(item.price_snapshot),
+            'price_snapshot': float(item.price_snapshot),
             'total': float(item_total)
         })
     
@@ -501,7 +523,7 @@ def category_detail_page(request, slug):
     """
     Vue pour la page de détail d'une catégorie
     """
-    category = get_object_or_404(Category, slug=slug, is_active=True)
+    category = get_object_or_404(Category, slug=slug)
     products = Product.objects.filter(category=category, is_active=True)
     
     # Pagination
@@ -522,3 +544,60 @@ def category_detail_page(request, slug):
         'description': category.description or f'Découvrez tous nos produits de la catégorie {category.name}'
     }
     return render(request, 'category_detail.html', context)
+
+@login_required
+def mon_compte_page(request):
+    """
+    Vue pour la page "Mon Compte"
+    """
+    return render(request, 'mon-compte.html')
+
+@login_required
+def mes_commandes_page(request):
+    """
+    Vue pour la page "Mes Commandes"
+    """
+    return render(request, 'mes-commandes.html')
+
+@login_required
+def checkout_page(request):
+    """
+    Vue pour la page de paiement
+    """
+    return render(request, 'checkout.html')
+
+@login_required
+def api_user_orders(request):
+    """
+    API pour récupérer l'historique des commandes de l'utilisateur
+    """
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    orders_data = []
+    for order in orders:
+        orders_data.append({
+            'order_number': order.order_number,
+            'total': float(order.total),
+            'status': order.get_status_display(),
+            'created_at': order.created_at.strftime('%d/%m/%Y'),
+            'items_count': order.items.count()
+        })
+    return JsonResponse({'orders': orders_data})
+
+@require_http_methods(["GET"])
+def api_auth_status(request):
+    """
+    API pour vérifier le statut d'authentification de l'utilisateur
+    """
+    if request.user.is_authenticated:
+        return JsonResponse({
+            'isAuthenticated': True,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+                'first_name': request.user.first_name,
+                'last_name': request.user.last_name,
+            }
+        })
+    else:
+        return JsonResponse({'isAuthenticated': False})
