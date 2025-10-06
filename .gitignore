@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+
+# Django
+db.sqlite3
+/media/
+/staticfiles/
+
+# Logs
+*.log
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Agent scratchpad
+jules-scratch/
